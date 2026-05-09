@@ -6,6 +6,12 @@ from dataclasses import dataclass
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 np.random.seed(42)
 plt.rcParams.update({'font.family': 'serif','axes.spines.top': False,'axes.spines.right': False,'axes.linewidth': 0.8})
 
@@ -17,6 +23,25 @@ class Config:
     csv_path: str = "/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv"
     freq: str = "MS"
     season: int = 12
+
+def load_config(config_path=None) -> 'Config':
+    """Build Config from config.yaml, falling back to dataclass defaults."""
+    if config_path is None:
+        config_path = Path(__file__).parent / 'config.yaml'
+    if not config_path.exists():
+        return Config()
+    with open(config_path) as _f:
+        import yaml as _yaml
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get('data', {})
+    _m = raw.get('model', {})
+    _o = raw.get('output', {})
+    return Config(
+        csv_path=_d.get('input_file', '/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
+        freq=_d.get('freq', 'MS'),
+        season=_m.get('season', 12),
+    )
+
 
 
 def load_series(cfg: Config) -> pd.Series:
@@ -36,15 +61,15 @@ def adf_summary(y: pd.Series) -> dict:
 
 
 def main():
-    cfg = Config()
+    cfg = load_config()
     s = load_series(cfg)
     base = adf_summary(s)
 
     sd = s.diff(cfg.season).dropna()
     seas = adf_summary(sd)
 
-    print("ADF on raw:", base)
-    print("ADF on seasonal-differenced:", seas)
+    logger.info("ADF on raw:", base)
+    logger.info("ADF on seasonal-differenced:", seas)
 
     fig, ax = plt.subplots(2, 2, figsize=(10,6))
     ax[0,0].plot(s.index, s.values); ax[0,0].set_title('EIA series')

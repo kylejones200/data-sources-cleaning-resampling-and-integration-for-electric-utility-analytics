@@ -15,6 +15,24 @@ class Config:
     csv_path: str = "2001-2025 Net_generation_United_States_all_sectors_monthly.csv"
     freq: str = "MS"
 
+def load_config(config_path=None) -> 'Config':
+    """Build Config from config.yaml, falling back to dataclass defaults."""
+    if config_path is None:
+        config_path = Path(__file__).parent / 'config.yaml'
+    if not config_path.exists():
+        return Config()
+    with open(config_path) as _f:
+        import yaml as _yaml
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get('data', {})
+    _m = raw.get('model', {})
+    _o = raw.get('output', {})
+    return Config(
+        csv_path=_d.get('input_file', '2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
+        freq=_d.get('freq', 'MS'),
+    )
+
+
 
 def load_series(cfg: Config) -> pd.Series:
     p = Path(cfg.csv_path)
@@ -26,7 +44,7 @@ def load_series(cfg: Config) -> pd.Series:
 
 
 def main():
-    cfg = Config()
+    cfg = load_config()
     s = load_series(cfg)
     yoy = s.pct_change(12) * 100.0
     yearly = s.resample('Y').mean()

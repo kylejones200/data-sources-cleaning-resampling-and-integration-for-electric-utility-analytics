@@ -17,6 +17,26 @@ class Config:
     season: int = 12
     drop_ratio: float = 0.05  # fraction of points to drop (simulate missing)
 
+def load_config(config_path=None) -> 'Config':
+    """Build Config from config.yaml, falling back to dataclass defaults."""
+    if config_path is None:
+        config_path = Path(__file__).parent / 'config.yaml'
+    if not config_path.exists():
+        return Config()
+    with open(config_path) as _f:
+        import yaml as _yaml
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get('data', {})
+    _m = raw.get('model', {})
+    _o = raw.get('output', {})
+    return Config(
+        csv_path=_d.get('input_file', '/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
+        freq=_d.get('freq', 'MS'),
+        season=_m.get('season', 12),
+        drop_ratio=_m.get('drop_ratio', 0.05),
+    )
+
+
 
 def load_series(cfg: Config) -> pd.Series:
     p = Path(cfg.csv_path)
@@ -38,7 +58,7 @@ def seasonal_mean_impute(s: pd.Series, season: int) -> pd.Series:
 
 
 def main():
-    cfg = Config()
+    cfg = load_config()
     s = load_series(cfg)
     # Simulate missing values
     n = len(s)
