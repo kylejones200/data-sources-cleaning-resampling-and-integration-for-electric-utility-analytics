@@ -43,17 +43,18 @@ def load_series(cfg: Config) -> pd.Series:
     return s
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     s = load_series(cfg)
     yoy = s.pct_change(12) * 100.0
     yearly = s.resample('Y').mean()
 
-    fig, ax = plt.subplots(3, 1, figsize=(10,8), sharex=False)
-    ax[0].plot(s.index, s.values, label='EIA monthly'); ax[0].legend()
-    ax[1].bar(yearly.index.year, yearly.values, label='Yearly mean') ; ax[1].legend()
-    ax[2].plot(yoy.index, yoy.values, color='tab:orange', label='YoY %'); ax[2].axhline(0, color='k', lw=0.5); ax[2].legend()
-    save_fig('eia_viz.png')
+    if plot:
+        fig, ax = plt.subplots(3, 1, figsize=(10,8), sharex=False)
+        ax[0].plot(s.index, s.values, label='EIA monthly'); ax[0].legend()
+        ax[1].bar(yearly.index.year, yearly.values, label='Yearly mean') ; ax[1].legend()
+        ax[2].plot(yoy.index, yoy.values, color='tab:orange', label='YoY %'); ax[2].axhline(0, color='k', lw=0.5); ax[2].legend()
+        save_fig('eia_viz.png')
 
 if __name__ == '__main__':
     main()

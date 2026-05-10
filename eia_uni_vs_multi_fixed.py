@@ -98,20 +98,21 @@ def rolling_origin_compare(y: pd.Series, cfg: Config):
     return float(np.mean(uni_maes)), float(np.mean(mul_maes)), last
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     y = load_series(cfg)
     uni_m, mul_m, last = rolling_origin_compare(y, cfg)
     logger.info(f"SARIMAX univariate mean MAE: {uni_m}")
     logger.info(f"SARIMAX with exogenous calendar features mean MAE: {mul_m}")
 
-    plt.figure(figsize=(9,4))
-    plt.plot(y.index, y.values, label='history', alpha=0.6)
-    if last:
-        for name in ['Univariate','WithExog']:
-            plt.plot(last[name].index, last[name].values, label=f"{name} last fold")
-    plt.legend()
-    save_fig('eia_uni_vs_multi_last_fold.png')
+    if plot:
+        plt.figure(figsize=(9,4))
+        plt.plot(y.index, y.values, label='history', alpha=0.6)
+        if last:
+            for name in ['Univariate','WithExog']:
+                plt.plot(last[name].index, last[name].values, label=f"{name} last fold")
+        plt.legend()
+        save_fig('eia_uni_vs_multi_last_fold.png')
 
 if __name__ == '__main__':
     main()

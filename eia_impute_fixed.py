@@ -57,7 +57,7 @@ def seasonal_mean_impute(s: pd.Series, season: int) -> pd.Series:
     return filled
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     s = load_series(cfg)
     # Simulate missing values
@@ -72,13 +72,14 @@ def main():
     s_lin = s_miss.interpolate(method='time')
 
     # Plot
-    plt.figure(figsize=(10,5))
-    plt.plot(s.index, s.values, label='original', alpha=0.4)
-    plt.scatter(s_miss.index[s_miss.isna()], s.loc[s_miss.isna()], color='red', s=18, label='removed')
-    plt.plot(s_seas.index, s_seas.values, label='seasonal mean', alpha=0.8)
-    plt.plot(s_lin.index, s_lin.values, label='time interpolation', alpha=0.8)
-    plt.legend()
-    save_fig('eia_impute_compare.png')
+    if plot:
+        plt.figure(figsize=(10,5))
+        plt.plot(s.index, s.values, label='original', alpha=0.4)
+        plt.scatter(s_miss.index[s_miss.isna()], s.loc[s_miss.isna()], color='red', s=18, label='removed')
+        plt.plot(s_seas.index, s_seas.values, label='seasonal mean', alpha=0.8)
+        plt.plot(s_lin.index, s_lin.values, label='time interpolation', alpha=0.8)
+        plt.legend()
+        save_fig('eia_impute_compare.png')
 
 if __name__ == '__main__':
     main()

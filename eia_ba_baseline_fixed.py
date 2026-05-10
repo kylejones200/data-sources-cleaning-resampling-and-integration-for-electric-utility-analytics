@@ -90,18 +90,19 @@ def rolling_origin_linear(y: pd.Series, cfg: Config):
     return float(np.mean(maes)), last_true, last_pred
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     y = load_series(cfg)
     mean_mae, y_true, y_pred = rolling_origin_linear(y, cfg)
     logger.info(f"Linear calendar baseline mean MAE: {mean_mae}")
 
-    plt.figure(figsize=(9,4))
-    plt.plot(y.index, y.values, label='history', alpha=0.6)
-    if y_pred is not None:
-        plt.plot(y_pred.index, y_pred.values, label='Linear baseline last fold')
-    plt.legend()
-    save_fig('eia_ba_baseline.png')
+    if plot:
+        plt.figure(figsize=(9,4))
+        plt.plot(y.index, y.values, label='history', alpha=0.6)
+        if y_pred is not None:
+            plt.plot(y_pred.index, y_pred.values, label='Linear baseline last fold')
+        plt.legend()
+        save_fig('eia_ba_baseline.png')
 
 if __name__ == '__main__':
     main()

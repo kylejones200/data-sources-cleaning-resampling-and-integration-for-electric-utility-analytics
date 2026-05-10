@@ -60,7 +60,7 @@ def adf_summary(y: pd.Series) -> dict:
     return out
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     s = load_series(cfg)
     base = adf_summary(s)
@@ -71,12 +71,13 @@ def main():
     logger.info("ADF on raw:", base)
     logger.info("ADF on seasonal-differenced:", seas)
 
-    fig, ax = plt.subplots(2, 2, figsize=(10,6))
-    ax[0,0].plot(s.index, s.values); ax[0,0].set_title('EIA series')
-    ax[0,1].plot(sd.index, sd.values); ax[0,1].set_title('Seasonal diff (12)')
-    plot_acf(sd.dropna(), ax=ax[1,0], lags=24)
-    plot_pacf(sd.dropna(), ax=ax[1,1], lags=24, method='ywm')
-    save_fig('eia_adf.png')
+    if plot:
+        fig, ax = plt.subplots(2, 2, figsize=(10,6))
+        ax[0,0].plot(s.index, s.values); ax[0,0].set_title('EIA series')
+        ax[0,1].plot(sd.index, sd.values); ax[0,1].set_title('Seasonal diff (12)')
+        plot_acf(sd.dropna(), ax=ax[1,0], lags=24)
+        plot_pacf(sd.dropna(), ax=ax[1,1], lags=24, method='ywm')
+        save_fig('eia_adf.png')
 
 if __name__ == "__main__":
     main()

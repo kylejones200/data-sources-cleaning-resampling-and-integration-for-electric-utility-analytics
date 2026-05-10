@@ -46,31 +46,32 @@ def load_series(cfg: Config) -> pd.Series:
     return s
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     s = load_series(cfg)
 
     dec = seasonal_decompose(s, model='additive', period=cfg.season)
 
-    fig, ax = plt.subplots(4, 1, figsize=(10,7), sharex=True)
-    ax[0].plot(s.index, s.values); ax[0].set_title('Observed')
-    ax[1].plot(dec.trend.index, dec.trend.values); ax[1].set_title('Trend')
-    ax[2].plot(dec.seasonal.index, dec.seasonal.values); ax[2].set_title('Seasonal')
-    ax[3].plot(dec.resid.index, dec.resid.values); ax[3].set_title('Residual')
-    save_fig('eia_patterns.png')
+    if plot:
+        fig, ax = plt.subplots(4, 1, figsize=(10,7), sharex=True)
+        ax[0].plot(s.index, s.values); ax[0].set_title('Observed')
+        ax[1].plot(dec.trend.index, dec.trend.values); ax[1].set_title('Trend')
+        ax[2].plot(dec.seasonal.index, dec.seasonal.values); ax[2].set_title('Seasonal')
+        ax[3].plot(dec.resid.index, dec.resid.values); ax[3].set_title('Residual')
+        save_fig('eia_patterns.png')
 
     # Seasonal subseries plot
-    sub = s.copy()
-    sub_df = sub.to_frame('value')
-    sub_df['month'] = sub_df.index.month
-    sub_df['year'] = sub_df.index.year
-    plt.figure(figsize=(10,6))
-    for m in range(1, 13):
-        part = sub_df[sub_df['month'] == m]
-        plt.plot(part['year'], part['value'], label=f'M{m}', alpha=0.6)
-    plt.legend(ncol=3, fontsize=8)
-    plt.xlabel('Year'); plt.ylabel('Value');
-    save_fig('eia_seasonal_subseries.png')
+        sub = s.copy()
+        sub_df = sub.to_frame('value')
+        sub_df['month'] = sub_df.index.month
+        sub_df['year'] = sub_df.index.year
+        plt.figure(figsize=(10,6))
+        for m in range(1, 13):
+            part = sub_df[sub_df['month'] == m]
+            plt.plot(part['year'], part['value'], label=f'M{m}', alpha=0.6)
+        plt.legend(ncol=3, fontsize=8)
+        plt.xlabel('Year'); plt.ylabel('Value');
+        save_fig('eia_seasonal_subseries.png')
 
 if __name__ == '__main__':
     main()

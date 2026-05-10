@@ -115,7 +115,7 @@ def rolling_origin_metrics(y: pd.Series, cfg: Config):
     return metrics, last_true, last_pred
 
 
-def main():
+def main(plot: bool = False):
     cfg = load_config()
     y = load_series(cfg)
     metrics, last_true, last_pred = rolling_origin_metrics(y, cfg)
@@ -124,12 +124,13 @@ def main():
     logger.info(dfm.mean().to_string())
 
     # Plot last fold
-    plt.figure(figsize=(9,4))
-    plt.plot(y.index, y.values, label='history', alpha=0.6)
-    if last_pred is not None:
-        plt.plot(last_pred.index, last_pred.values, label='Seasonal naive last fold')
-    plt.legend()
-    save_fig('eia_errors_last_fold.png')
+    if plot:
+        plt.figure(figsize=(9,4))
+        plt.plot(y.index, y.values, label='history', alpha=0.6)
+        if last_pred is not None:
+            plt.plot(last_pred.index, last_pred.values, label='Seasonal naive last fold')
+        plt.legend()
+        save_fig('eia_errors_last_fold.png')
 
 if __name__ == '__main__':
     main()
