@@ -1,3 +1,4 @@
+import signalplot
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,10 +7,8 @@ from dataclasses import dataclass
 from statsmodels.tsa.seasonal import seasonal_decompose
 
 np.random.seed(42)
-plt.rcParams.update({'font.family': 'serif','axes.spines.top': False,'axes.spines.right': False,'axes.linewidth': 0.8})
+signalplot.apply(font_family='serif')
 
-def save_fig(path: str):
-    plt.tight_layout(); plt.savefig(path, bbox_inches='tight'); plt.close()
 
 @dataclass
 class Config:
@@ -58,7 +57,7 @@ def main(plot: bool = False):
         ax[1].plot(dec.trend.index, dec.trend.values); ax[1].set_title('Trend')
         ax[2].plot(dec.seasonal.index, dec.seasonal.values); ax[2].set_title('Seasonal')
         ax[3].plot(dec.resid.index, dec.resid.values); ax[3].set_title('Residual')
-        save_fig('eia_patterns.png')
+        signalplot.save('eia_patterns.png')
 
     # Seasonal subseries plot
         sub = s.copy()
@@ -71,7 +70,7 @@ def main(plot: bool = False):
             plt.plot(part['year'], part['value'], label=f'M{m}', alpha=0.6)
         plt.legend(ncol=3, fontsize=8)
         plt.xlabel('Year'); plt.ylabel('Value');
-        save_fig('eia_seasonal_subseries.png')
+        signalplot.save('eia_seasonal_subseries.png')
 
 if __name__ == '__main__':
     main()

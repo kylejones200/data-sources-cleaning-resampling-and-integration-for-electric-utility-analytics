@@ -1,3 +1,4 @@
+import signalplot
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,10 +6,8 @@ from pathlib import Path
 from dataclasses import dataclass
 
 np.random.seed(42)
-plt.rcParams.update({'font.family': 'serif','axes.spines.top': False,'axes.spines.right': False,'axes.linewidth': 0.8})
+signalplot.apply(font_family='serif')
 
-def save_fig(path: str):
-    plt.tight_layout(); plt.savefig(path, bbox_inches='tight'); plt.close()
 
 @dataclass
 class Config:
@@ -79,7 +78,7 @@ def main(plot: bool = False):
         plt.plot(s_seas.index, s_seas.values, label='seasonal mean', alpha=0.8)
         plt.plot(s_lin.index, s_lin.values, label='time interpolation', alpha=0.8)
         plt.legend()
-        save_fig('eia_impute_compare.png')
+        signalplot.save('eia_impute_compare.png')
 
 if __name__ == '__main__':
     main()
