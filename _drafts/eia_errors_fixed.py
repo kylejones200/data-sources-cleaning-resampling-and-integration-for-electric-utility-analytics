@@ -1,19 +1,19 @@
-import signalplot
+import logging
+from dataclasses import dataclass
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
-from dataclasses import dataclass
+import signalplot
 from sklearn.model_selection import TimeSeriesSplit
 
-import logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 np.random.seed(42)
-signalplot.apply(font_family='serif')
+signalplot.apply(font_family="serif")
 
 
 @dataclass
@@ -24,31 +24,35 @@ class Config:
     n_splits: int = 5
     season: int = 12
 
-def load_config(config_path=None) -> 'Config':
+
+def load_config(config_path=None) -> "Config":
     """Build Config from config.yaml, falling back to dataclass defaults."""
     if config_path is None:
-        config_path = Path(__file__).parent / 'config.yaml'
+        config_path = Path(__file__).parent / "config.yaml"
     if not config_path.exists():
         return Config()
     with open(config_path) as _f:
         import yaml as _yaml
-        raw = _yaml.safe_load(_f) or {}
-    _d = raw.get('data', {})
-    _m = raw.get('model', {})
-    _o = raw.get('output', {})
-    return Config(
-        csv_path=_d.get('input_file', '2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
-        freq=_d.get('freq', 'MS'),
-        horizon=_m.get('horizon', 12),
-        n_splits=_d.get('n_splits', 5),
-        season=_m.get('season', 12),
-    )
 
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get("data", {})
+    _m = raw.get("model", {})
+    _o = raw.get("output", {})
+    return Config(
+        csv_path=_d.get(
+            "input_file",
+            "2001-2025 Net_generation_United_States_all_sectors_monthly.csv",
+        ),
+        freq=_d.get("freq", "MS"),
+        horizon=_m.get("horizon", 12),
+        n_splits=_d.get("n_splits", 5),
+        season=_m.get("season", 12),
+    )
 
 
 def load_series(cfg: Config) -> pd.Series:
     p = Path(cfg.csv_path)
-    df = pd.read_csv(p, header=None, usecols=[0,1], names=["date","value"], sep=",")
+    df = pd.read_csv(p, header=None, usecols=[0, 1], names=["date", "value"], sep=",")
     df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d", errors="coerce")
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     s = df.dropna().sort_values("date").set_index("date")["value"].asfreq(cfg.freq)
@@ -58,14 +62,16 @@ def load_series(cfg: Config) -> pd.Series:
 def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.mean(np.abs(y_true - y_pred)))
 
+
 def mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     yt = y_true.copy()
     # Avoid div by zero
     yt[yt == 0] = np.finfo(float).eps
     return float(np.mean(np.abs((y_true - y_pred) / yt)) * 100.0)
 
+
 def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    denom = (np.abs(y_true) + np.abs(y_pred))
+    denom = np.abs(y_true) + np.abs(y_pred)
     denom[denom == 0] = np.finfo(float).eps
     return float(np.mean(2.0 * np.abs(y_pred - y_true) / denom) * 100.0)
 
@@ -104,12 +110,14 @@ def rolling_origin_metrics(y: pd.Series, cfg: Config):
         m_smape = smape(y_te.values, yhat)
         denom = mase_denom_seasonal(y_tr, cfg.season)
         m_mase = float(np.mean(np.abs(y_te.values - yhat)) / denom)
-        metrics.append({
-            'MAE': m_mae,
-            'MAPE': m_mape,
-            'SMAPE': m_smape,
-            'MASE': m_mase,
-        })
+        metrics.append(
+            {
+                "MAE": m_mae,
+                "MAPE": m_mape,
+                "SMAPE": m_smape,
+                "MASE": m_mase,
+            }
+        )
         last_true, last_pred = y_te, pd.Series(yhat, index=y_te.index)
     return metrics, last_true, last_pred
 
@@ -124,12 +132,15 @@ def main(plot: bool = False):
 
     # Plot last fold
     if plot:
-        plt.figure(figsize=(9,4))
-        plt.plot(y.index, y.values, label='history', alpha=0.6)
+        plt.figure(figsize=(9, 4))
+        plt.plot(y.index, y.values, label="history", alpha=0.6)
         if last_pred is not None:
-            plt.plot(last_pred.index, last_pred.values, label='Seasonal naive last fold')
+            plt.plot(
+                last_pred.index, last_pred.values, label="Seasonal naive last fold"
+            )
         plt.legend()
-        signalplot.save('eia_errors_last_fold.png')
+        signalplot.save("eia_errors_last_fold.png")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

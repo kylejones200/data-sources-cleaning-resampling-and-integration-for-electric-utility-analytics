@@ -1,21 +1,21 @@
-import signalplot
+import logging
+from dataclasses import dataclass
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
-from dataclasses import dataclass
-from sklearn.model_selection import TimeSeriesSplit
+import signalplot
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import TimeSeriesSplit
 
-import logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 np.random.seed(42)
-signalplot.apply(font_family='serif')
+signalplot.apply(font_family="serif")
 
 
 @dataclass
@@ -25,30 +25,34 @@ class Config:
     horizon: int = 12
     n_splits: int = 5
 
-def load_config(config_path=None) -> 'Config':
+
+def load_config(config_path=None) -> "Config":
     """Build Config from config.yaml, falling back to dataclass defaults."""
     if config_path is None:
-        config_path = Path(__file__).parent / 'config.yaml'
+        config_path = Path(__file__).parent / "config.yaml"
     if not config_path.exists():
         return Config()
     with open(config_path) as _f:
         import yaml as _yaml
-        raw = _yaml.safe_load(_f) or {}
-    _d = raw.get('data', {})
-    _m = raw.get('model', {})
-    _o = raw.get('output', {})
-    return Config(
-        csv_path=_d.get('input_file', '2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
-        freq=_d.get('freq', 'MS'),
-        horizon=_m.get('horizon', 12),
-        n_splits=_d.get('n_splits', 5),
-    )
 
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get("data", {})
+    _m = raw.get("model", {})
+    _o = raw.get("output", {})
+    return Config(
+        csv_path=_d.get(
+            "input_file",
+            "2001-2025 Net_generation_United_States_all_sectors_monthly.csv",
+        ),
+        freq=_d.get("freq", "MS"),
+        horizon=_m.get("horizon", 12),
+        n_splits=_d.get("n_splits", 5),
+    )
 
 
 def load_series(cfg: Config) -> pd.Series:
     p = Path(cfg.csv_path)
-    df = pd.read_csv(p, header=None, usecols=[0,1], names=["date","value"], sep=",")
+    df = pd.read_csv(p, header=None, usecols=[0, 1], names=["date", "value"], sep=",")
     df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d", errors="coerce")
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     s = df.dropna().sort_values("date").set_index("date")["value"].asfreq(cfg.freq)
@@ -59,11 +63,11 @@ def make_calendar_features(idx: pd.DatetimeIndex) -> pd.DataFrame:
     df = pd.DataFrame(index=idx)
     m = df.index.month.values
     # sine/cos seasonal terms
-    df['sin12'] = np.sin(2 * np.pi * m / 12.0)
-    df['cos12'] = np.cos(2 * np.pi * m / 12.0)
+    df["sin12"] = np.sin(2 * np.pi * m / 12.0)
+    df["cos12"] = np.cos(2 * np.pi * m / 12.0)
     # month dummies
     for k in range(1, 13):
-        df[f'm{k}'] = (m == k).astype(int)
+        df[f"m{k}"] = (m == k).astype(int)
     return df
 
 
@@ -96,12 +100,13 @@ def main(plot: bool = False):
     logger.info(f"Linear calendar baseline mean MAE: {mean_mae}")
 
     if plot:
-        plt.figure(figsize=(9,4))
-        plt.plot(y.index, y.values, label='history', alpha=0.6)
+        plt.figure(figsize=(9, 4))
+        plt.plot(y.index, y.values, label="history", alpha=0.6)
         if y_pred is not None:
-            plt.plot(y_pred.index, y_pred.values, label='Linear baseline last fold')
+            plt.plot(y_pred.index, y_pred.values, label="Linear baseline last fold")
         plt.legend()
-        signalplot.save('eia_ba_baseline.png')
+        signalplot.save("eia_ba_baseline.png")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

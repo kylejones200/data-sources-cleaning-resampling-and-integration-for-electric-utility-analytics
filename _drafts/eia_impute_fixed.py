@@ -1,12 +1,13 @@
-import signalplot
+from dataclasses import dataclass
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from pathlib import Path
-from dataclasses import dataclass
+import signalplot
 
 np.random.seed(42)
-signalplot.apply(font_family='serif')
+signalplot.apply(font_family="serif")
 
 
 @dataclass
@@ -16,30 +17,34 @@ class Config:
     season: int = 12
     drop_ratio: float = 0.05  # fraction of points to drop (simulate missing)
 
-def load_config(config_path=None) -> 'Config':
+
+def load_config(config_path=None) -> "Config":
     """Build Config from config.yaml, falling back to dataclass defaults."""
     if config_path is None:
-        config_path = Path(__file__).parent / 'config.yaml'
+        config_path = Path(__file__).parent / "config.yaml"
     if not config_path.exists():
         return Config()
     with open(config_path) as _f:
         import yaml as _yaml
-        raw = _yaml.safe_load(_f) or {}
-    _d = raw.get('data', {})
-    _m = raw.get('model', {})
-    _o = raw.get('output', {})
-    return Config(
-        csv_path=_d.get('input_file', '/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv'),
-        freq=_d.get('freq', 'MS'),
-        season=_m.get('season', 12),
-        drop_ratio=_m.get('drop_ratio', 0.05),
-    )
 
+        raw = _yaml.safe_load(_f) or {}
+    _d = raw.get("data", {})
+    _m = raw.get("model", {})
+    _o = raw.get("output", {})
+    return Config(
+        csv_path=_d.get(
+            "input_file",
+            "/Users/k.jones/Downloads/medium-export-e6bf40a8b01915d7380f6f547e0dd25ddd791328d4d9fa3a77513e82e662373c/posts/2001-2025 Net_generation_United_States_all_sectors_monthly.csv",
+        ),
+        freq=_d.get("freq", "MS"),
+        season=_m.get("season", 12),
+        drop_ratio=_m.get("drop_ratio", 0.05),
+    )
 
 
 def load_series(cfg: Config) -> pd.Series:
     p = Path(cfg.csv_path)
-    df = pd.read_csv(p, header=None, usecols=[0,1], names=["date","value"], sep=",")
+    df = pd.read_csv(p, header=None, usecols=[0, 1], names=["date", "value"], sep=",")
     df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d", errors="coerce")
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     s = df.dropna().sort_values("date").set_index("date")["value"].asfreq(cfg.freq)
@@ -68,17 +73,24 @@ def main(plot: bool = False):
 
     # Impute
     s_seas = seasonal_mean_impute(s_miss, cfg.season)
-    s_lin = s_miss.interpolate(method='time')
+    s_lin = s_miss.interpolate(method="time")
 
     # Plot
     if plot:
-        plt.figure(figsize=(10,5))
-        plt.plot(s.index, s.values, label='original', alpha=0.4)
-        plt.scatter(s_miss.index[s_miss.isna()], s.loc[s_miss.isna()], color='red', s=18, label='removed')
-        plt.plot(s_seas.index, s_seas.values, label='seasonal mean', alpha=0.8)
-        plt.plot(s_lin.index, s_lin.values, label='time interpolation', alpha=0.8)
+        plt.figure(figsize=(10, 5))
+        plt.plot(s.index, s.values, label="original", alpha=0.4)
+        plt.scatter(
+            s_miss.index[s_miss.isna()],
+            s.loc[s_miss.isna()],
+            color="red",
+            s=18,
+            label="removed",
+        )
+        plt.plot(s_seas.index, s_seas.values, label="seasonal mean", alpha=0.8)
+        plt.plot(s_lin.index, s_lin.values, label="time interpolation", alpha=0.8)
         plt.legend()
-        signalplot.save('eia_impute_compare.png')
+        signalplot.save("eia_impute_compare.png")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
