@@ -120,7 +120,6 @@ def main(plot: bool = False):
     uni_m, mul_m, last = rolling_origin_compare(y, cfg)
     logger.info(f"SARIMAX univariate mean MAE: {uni_m}")
     logger.info(f"SARIMAX with exogenous calendar features mean MAE: {mul_m}")
-
     if plot:
         plt.figure(figsize=(9, 4))
         plt.plot(y.index, y.values, label="history", alpha=0.6)

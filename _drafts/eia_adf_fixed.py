@@ -67,13 +67,10 @@ def main(plot: bool = False):
     cfg = load_config()
     s = load_series(cfg)
     base = adf_summary(s)
-
     sd = s.diff(cfg.season).dropna()
     seas = adf_summary(sd)
-
     logger.info("ADF on raw:", base)
     logger.info("ADF on seasonal-differenced:", seas)
-
     if plot:
         fig, ax = plt.subplots(2, 2, figsize=(10, 6))
         ax[0, 0].plot(s.index, s.values)

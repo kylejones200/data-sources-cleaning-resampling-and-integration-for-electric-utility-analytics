@@ -129,7 +129,6 @@ def main(plot: bool = False):
     # Print mean metrics
     dfm = pd.DataFrame(metrics)
     logger.info(dfm.mean().to_string())
-
     # Plot last fold
     if plot:
         plt.figure(figsize=(9, 4))

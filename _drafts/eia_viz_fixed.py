@@ -52,7 +52,6 @@ def main(plot: bool = False):
     s = load_series(cfg)
     yoy = s.pct_change(12) * 100.0
     yearly = s.resample("Y").mean()
-
     if plot:
         fig, ax = plt.subplots(3, 1, figsize=(10, 8), sharex=False)
         ax[0].plot(s.index, s.values, label="EIA monthly")

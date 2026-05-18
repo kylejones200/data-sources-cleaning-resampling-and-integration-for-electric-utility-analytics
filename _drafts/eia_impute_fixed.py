@@ -70,11 +70,9 @@ def main(plot: bool = False):
     miss_idx = np.random.choice(np.arange(n), size=k, replace=False)
     s_miss = s.copy()
     s_miss.iloc[miss_idx] = np.nan
-
     # Impute
     s_seas = seasonal_mean_impute(s_miss, cfg.season)
     s_lin = s_miss.interpolate(method="time")
-
     # Plot
     if plot:
         plt.figure(figsize=(10, 5))

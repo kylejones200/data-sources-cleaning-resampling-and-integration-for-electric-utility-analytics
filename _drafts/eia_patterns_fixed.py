@@ -53,9 +53,7 @@ def load_series(cfg: Config) -> pd.Series:
 def main(plot: bool = False):
     cfg = load_config()
     s = load_series(cfg)
-
     dec = seasonal_decompose(s, model="additive", period=cfg.season)
-
     if plot:
         fig, ax = plt.subplots(4, 1, figsize=(10, 7), sharex=True)
         ax[0].plot(s.index, s.values)
@@ -67,7 +65,6 @@ def main(plot: bool = False):
         ax[3].plot(dec.resid.index, dec.resid.values)
         ax[3].set_title("Residual")
         signalplot.save("eia_patterns.png")
-
         # Seasonal subseries plot
         sub = s.copy()
         sub_df = sub.to_frame("value")

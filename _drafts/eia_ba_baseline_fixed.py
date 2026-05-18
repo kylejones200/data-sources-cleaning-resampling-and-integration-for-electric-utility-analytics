@@ -98,7 +98,6 @@ def main(plot: bool = False):
     y = load_series(cfg)
     mean_mae, y_true, y_pred = rolling_origin_linear(y, cfg)
     logger.info(f"Linear calendar baseline mean MAE: {mean_mae}")
-
     if plot:
         plt.figure(figsize=(9, 4))
         plt.plot(y.index, y.values, label="history", alpha=0.6)
