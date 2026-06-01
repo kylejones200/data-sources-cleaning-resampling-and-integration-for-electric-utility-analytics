@@ -1,0 +1,13 @@
+[package]
+name = "data_sources_cleaning_resampling_and_integration_for_electric_utility_analytics_bench"
+description = "Standalone Rust benchmark (no Python)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "bench"
+path = "src/main.rs"
+
+[dependencies]
+data_sources_cleaning_resampling_and_integration_for_electric_utility_analytics_core = { path = "../core" }

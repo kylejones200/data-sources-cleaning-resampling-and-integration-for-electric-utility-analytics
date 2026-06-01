@@ -1,0 +1,9 @@
+[package]
+name = "data_sources_cleaning_resampling_and_integration_for_electric_utility_analytics_core"
+description = "Hourly bucket mean aggregation"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
